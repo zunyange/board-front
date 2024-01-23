@@ -1,12 +1,9 @@
-import React, {useState} from "react";
+import React from "react";
 
-function List() {
-    const [list, setList] = useState([]);
+function List({memoData}) {
+  // const [list, setList] = useState([]);
 
-    return (
-        <div>dd</div>
-    )
-
+  return <div>dd</div>;
 }
 
 export default List;

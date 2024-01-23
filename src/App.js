@@ -1,38 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import * as S from "./AppStyle.js";
+import List from "./components/List";
 
 function App() {
-    const [value, setValue] = useState('');
+  const [memo, setMemo] = useState("");
+  const [memoData, setMemoData] = useState([]);
 
-    const handleChange = (e) => {
-        setValue(e.target.value);
-    };
+  const handleChange = (e) => {
+    setMemo(e.target.value);
+  };
 
-    const handleSubmit = () => {
-        // fetch를 통해 서버로 데이터 전송
-        fetch('서버 API 주소', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', // Specify the correct content type
-            },
-            body: JSON.stringify({ content: value }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                // 성공적으로 데이터를 전송하면 상태 초기화 또는 리다이렉션 등의 작업 수행
-                setValue('');
-                console.log('게시글이 성공적으로 작성되었습니다.', data);
-            })
-            .catch(error => {
-                console.error('게시글 작성 중 오류 발생:', error);
-            });
-    };
+  const handleSubmit = () => {
+    setMemoData([...memoData, memo]);
+    setMemo("");
+  };
 
-    return (
-        <div>
-            <textarea value={value} onChange={handleChange} />
-            <button onClick={handleSubmit}>전송</button>
-        </div>
-    );
+  return (
+    <S.Main>
+      <List memoData={memoData} />
+      <S.BoardContainer>
+        <textarea value={memo} onChange={handleChange} />
+        <button onClick={handleSubmit}>전송</button>
+        <S.SaveBoard>
+          {memoData.map((data, index) => (
+            <div key={index}>
+              {data.split("\n").map((line, lineIndex) => (
+                <React.Fragment key={lineIndex}>
+                  {line}
+                  {lineIndex !== data.split("\n").length - 1 && <br />}
+                </React.Fragment>
+              ))}
+            </div>
+          ))}
+        </S.SaveBoard>
+        {/* <S.SaveBoard>
+          {memoData.map((data, index) => (
+            <div key={index}>{data}</div>
+          ))}
+        </S.SaveBoard> */}
+      </S.BoardContainer>
+    </S.Main>
+  );
 }
 
 export default App;

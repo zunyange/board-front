@@ -1,0 +1,48 @@
+{
+  "code": 200,
+  "message": "OK",
+  "data": [
+    {
+      "id": 2,
+      "title": "제목입니당",
+      "content": "내용입니다",
+      "createdAt": "2024-01-23T16:08:22.662+00:00",
+      "email": "abcd@naver.com"
+    },
+    {
+      "id": 3,
+      "title": "제목22입니당",
+      "content": "내용22입니다",
+      "createdAt": "2024-01-23T16:17:58.123+00:00",
+      "email": "abcd@naver.com"
+    },
+    {
+      "id": 4,
+      "title": "제목44입니당",
+      "content": "내용22입니다",
+      "createdAt": "2024-01-23T08:43:30.296+00:00",
+      "email": "abcd@naver.com"
+    },
+    {
+      "id": 5,
+      "title": "제목55입니당",
+      "content": "내용22입니다",
+      "createdAt": "2024-01-24T07:14:56.424+00:00",
+      "email": "abcd@naver.com"
+    },
+    {
+      "id": 6,
+      "title": "제목66입니당",
+      "content": "내용22입니다",
+      "createdAt": "2024-01-24T08:15:00.179+00:00",
+      "email": "abcd@naver.com"
+    },
+    {
+      "id": 7,
+      "title": "제목77입니당",
+      "content": "내용22입니다",
+      "createdAt": "2024-01-24T09:17:26.125+00:00",
+      "email": "abcd@naver.com"
+    }
+  ]
+}

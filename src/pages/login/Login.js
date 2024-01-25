@@ -36,7 +36,7 @@ function Login() {
       //   .then((response) => response.json())
       //   .then((data) => {
       alert("로그인 성공!");
-      navigate("/main");
+      navigate("/boards");
     } else {
       alert("이메일과 비밀번호를 다시 확인해주세요.");
       // });

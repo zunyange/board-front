@@ -3,9 +3,10 @@ import styled from "styled-components";
 export const Main = styled.main`
   padding-top: 30px;
   display: grid;
-  grid-template-columns: 1fr 5fr;
+  grid-template-columns: 1fr 3fr;
 `;
 
+// export const BoardContainer = styled.div``;
 export const BoardContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -25,7 +26,6 @@ export const BoardContainer = styled.div`
     padding: 15px;
   }
 `;
-
 export const CreateBoard = styled.div`
   display: flex;
   justify-content: center;
@@ -38,4 +38,12 @@ export const CreateBoard = styled.div`
   background-color: ${(props) => props.theme.lightColor};
   border-radius: 10px;
   cursor: pointer;
+`;
+
+export const BoardInfo = styled.div``;
+export const Writer = styled.div``;
+
+export const UpdatedTime = styled.div`
+  margin-top: 10px;
+  font-size: ${(props) => props.theme.s};
 `;

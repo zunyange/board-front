@@ -19,7 +19,10 @@ function BoardList({ data, onEdit, onAdd }) {
           style={{ textDecoration: "none" }}
         >
           <NoteTitle>
-            {board.id} | {board.title}
+            <Title>
+              {board.id} | {board.title}
+            </Title>
+            <Writer>작성자 : {board.email.split("@")[0]}</Writer>
           </NoteTitle>
         </Link>
       ))}
@@ -30,7 +33,7 @@ function BoardList({ data, onEdit, onAdd }) {
 export default BoardList;
 
 const ListContainer = styled.div`
-  padding: 0 25px;
+  padding: 0 30px;
 `;
 
 const TitleWrap = styled.div`
@@ -53,11 +56,21 @@ const AddBoard = styled.div`
 `;
 
 const NoteTitle = styled.div`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 280px;
+  display: flex;
+  justify-content: space-between;
+
   line-height: 30px;
   color: #000000;
   margin: 15px;
+`;
+
+const Title = styled.div`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+`;
+
+const Writer = styled.div`
+  font-size: ${(props) => props.theme.s};
 `;

@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as S from "./MainStyle.js";
 import BoardList from "../../components/board/BoardList";
+import axios from "axios";
 
 function Main() {
-  // const [title, setTitle] = useState("");
-  // const [content, setContent] = useState("");
-
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -18,19 +16,7 @@ function Main() {
   const [data, setData] = useState(null);
 
   const { id } = useParams();
-
-  // <form onSubmit={handleSubmit}>
-  //   <button type={'submit'}></button>
-  // </form>
-
   const { title, content } = form;
-
-  // const handleContent = (e) => {
-  //   setContent(e.target.value);
-  // };
-  // const handleTitle = (e) => {
-  //   setTitle(e.target.value);
-  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,146 +26,157 @@ function Main() {
     });
   };
 
+  //선택한 리스트의 데이터 불러오기
   const handleEdit = (board) => {
-    // setTitle(board.title);
-    // setContent(board.content);
     setForm({
-      ...form,
       title: board.title,
       content: board.content,
     });
+    setEmail(board.email);
     setSelectedList(board.id);
     setCreatedAt(board.createdAt);
     console.log("click", board);
   };
 
   const AddBoard = () => {
-    // setTitle("");
-    // setContent("");
     setForm({
       ...form,
       title: "",
       content: "",
     });
-    setSelectedList(null);
+    setEmail("");
     setCreatedAt("");
   };
 
-  const commitCreate = () => {
+  //게시글을 수정하거나 새로운 게시글을 생성
+  const commitCreate = async () => {
     const isEdit = selectedList !== null;
-    const updatedData = data.map((post) =>
-      post.id === selectedList
-        ? {
-            ...post,
-            title: title,
-            content: content,
-            createdAt: new Date().toLocaleString(),
-          }
-        : post,
-    );
 
     if (isEdit) {
-      setData(updatedData);
+      //게시글 중 하나를 선택했을 때
+      const updateData = { title, content, email };
+      console.log("22", id);
+      //fetch 문
+      // try {
+      //   const response = await fetch(`/api/boards/${selectedList}`, {
+      //     method: "PATCH",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify(updateData),
+      //   });
+      //
+      //   if (!response.ok) {
+      //     throw new Error(`HTTP error! status: ${response.status}`);
+      //   }
+
+      try {
+        const response = await axios.patch(
+          `/api/boards/${selectedList}`,
+          updateData,
+        );
+        const updatedBoard = response.data;
+        setCreatedAt(updatedBoard.createdAt); // 수정된 시간으로 상태 업데이트
+        // 게시글 목록을 갱신
+        await fetchBoards(); // 전체 게시글 목록을 다시 불러오는 함수 호출
+        //기존의 목록을 직접 업데이트하는 방법
+        // setData((prevData) =>
+        //   prevData.map((post) =>
+        //     post.id === selectedList ? { ...post, ...updatedBoard } : post,
+        //   ),
+        // );
+      } catch (error) {
+        console.error("Failed to update board:", error);
+      }
     } else {
+      //선택한 게시글이 없을 때
       const newPost = {
-        id: data.length + 1,
-        title: title,
-        content: content,
-        createdAt: new Date().toLocaleString(), // Set createdAt for new post
+        title,
+        content,
+        email,
+        createdAt,
       };
-      setData([...data, newPost]);
-      setCreatedAt(newPost.createdAt);
+      try {
+        const response = await axios.post("/api/boards", newPost);
+        const createdBoard = response.data; // Assuming this contains the created board data
+
+        setCreatedAt(createdBoard.createdAt); // 생성된 시간으로 상태 업데이트
+        await fetchBoards();
+      } catch (error) {
+        console.error("Error creating new board:", error);
+      }
     }
 
     setForm({
-      ...form,
       title: "",
       content: "",
     });
-    // setTitle("");
-    // setContent("");
+    setEmail("");
     setCreatedAt("");
     setSelectedList(null);
   };
+
   const isDisabled = !title || !content;
-  const formatCreatedAt = (createdAt) => {
+
+  const fetchBoards = async () => {
+    // try {
+    //   const response = await axios.get("http://192.168.0.76:8080/api/boards");
+    //   setData(response.data);
+    // }
     try {
-      const date = new Date(createdAt);
-      if (isNaN(date)) {
-        throw new Error("Invalid Date");
-      }
-      const options = {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      };
-      return date.toLocaleString("ko-KR", options);
+      // const response = await fetch("/api/boards");
+      const response = await fetch("/data/board.json");
+      const result = await response.json();
+      setData(result.data);
     } catch (error) {
-      return createdAt;
+      console.error("Error fetching boards:", error);
+      setData([]); // In the event of an error, reset the data to an empty array.
     }
   };
-  useEffect(() => {
-    // This is an async function that will be used to fetch all the boards when 'id' is not present.
-    // In other words, this function will run when the component is first mounted and anytime
-    // the 'id' changes to 'undefined' (implying that the user is not viewing/editing a specific board).
-    const fetchBoards = async () => {
-      try {
-        const response = await fetch("http://192.168.0.76:8000/api/boards");
-        const result = await response.json();
-        setData(result.data);
-        // Assuming the response has a 'data' property which is an array of boards.
-      } catch (error) {
-        console.error("Error fetching boards:", error);
-        setData([]); // In the event of an error, reset the data to an empty array.
-      }
-    };
 
-    // This is an async function that will be invoked when an 'id' is present.
-    // This fetches the details of a single board by its identifier.
-    const fetchBoardDetails = async () => {
-      try {
-        const response = await fetch(
-          `http://192.168.0.76:8000/api/boards/${id}`,
-        );
-        const boardDetails = await response.json();
+  const fetchBoardDetails = async () => {
+    try {
+      await axios.get(`/api/boards/${id}`);
 
-        // Assuming the response returns an object with 'title', 'content', etc.
+      // Assuming the response returns an object with 'title', 'content', etc.
 
-        setForm({
-          ...form,
-          title: boardDetails.title,
-          content: boardDetails.content,
-        });
-        // setTitle(boardDetails.title);
-        // setContent(boardDetails.content);
-        setEmail(boardDetails.email); // Set the email state with the retrieved email value
-        setCreatedAt(boardDetails.createdAt);
-      } catch (error) {
-        console.error(`Error fetching board details for id ${id}:`, error);
-      }
-    };
-
-    // 'id' is a variable declared outside of this useEffect, derived from useParams().
-    // If 'id' is defined (truthy), it implies that we are intending to view/edit a specific board,
-    // hence we call fetchBoardDetails().
-    // If 'id' is undefined (falsy), it means we are on the list-view page without an id param in the URL,
-    // hence we call fetchBoards().
-    if (id) {
-      fetchBoardDetails();
-    } else {
-      fetchBoards();
+      setForm({
+        title: title,
+        content: content,
+      });
+      // setEmail(email);
+      setCreatedAt(createdAt);
+    } catch (error) {
+      console.error(`Error fetching board details for id ${id}:`, error);
     }
+  };
+  // 날짜 format 변경
+  const formatCreatedAt = (createdAt) => {
+    const date = new Date(createdAt);
 
-    console.log("id", id);
-  }, []); // The useEffect hook will re-run whenever 'id' changes.
+    const options = {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    };
+    return date.toLocaleString("ko-KR", options);
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchBoardDetails(); // 특정 게시글 상세 정보를 불러오는 함수
+    } else {
+      fetchBoards(); // 전체 게시글 목록을 불러오는 함수
+    }
+  }, [id]); // The useEffect hook will re-run whenever 'id' changes.
 
   return (
     <S.Main>
       {Array.isArray(data) && (
-        <BoardList onEdit={handleEdit} onAdd={AddBoard} data={data} />
+        <BoardList onAdd={AddBoard} data={data} onEdit={handleEdit} />
       )}
       <S.BoardContainer>
         <input
@@ -195,11 +192,8 @@ function Main() {
           onChange={handleChange}
           rows="20"
         />
-        <S.BoardInfo>
-          <S.Writer>{email}</S.Writer>
-        </S.BoardInfo>
         <S.UpdatedTime>
-          업데이트 시간 : {createdAt && formatCreatedAt(createdAt)}
+          업데이트 시간 : {formatCreatedAt(createdAt)}
         </S.UpdatedTime>
         <S.CreateBoard onClick={isDisabled ? null : commitCreate}>
           작성 완료!

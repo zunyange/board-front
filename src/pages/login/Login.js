@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import styled from "styled-components";
 
 function Login() {
@@ -26,22 +27,31 @@ function Login() {
     }
   };
 
-  const login = () => {
+  const login = async () => {
     if (isValidLogin) {
-      // fetch("서버 API 주소", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // })
-      //   .then((response) => response.json())
-      //   .then((data) => {
-      alert("로그인 성공!");
-      navigate("/boards");
+      try {
+        const response = await axios.post("`${APIS.login}`", {
+          username: email,
+          password: password,
+        });
+        // Store the token in local storage or any state management lib of your choice.
+        localStorage.setItem("jwtToken", response.data.token);
+
+        // Optional: Set the auth token on axios as a default header if you are going to need it for future requests.
+        axios.defaults.headers.common["Authorization"] =
+          "Bearer " + response.data.token;
+
+        alert("로그인 성공!");
+        navigate("/boards");
+      } catch (error) {
+        console.error("Login error", error);
+        alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
+      }
     } else {
-      alert("이메일과 비밀번호를 다시 확인해주세요.");
-      // });
+      alert("로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인해주세요.");
     }
   };
+
   const goToSignup = () => {
     navigate("/signup");
   };

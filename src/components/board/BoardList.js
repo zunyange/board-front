@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
-function BoardList({ data, onEdit, onAdd }) {
+function BoardList({ data, onAdd, onEdit }) {
   console.log("BoardList", data);
 
   return (
@@ -23,6 +23,7 @@ function BoardList({ data, onEdit, onAdd }) {
               {board.id} | {board.title}
             </Title>
             <Writer>작성자 : {board.email.split("@")[0]}</Writer>
+            {/*<Writer>작성자 : {board.email}</Writer>*/}
           </NoteTitle>
         </Link>
       ))}

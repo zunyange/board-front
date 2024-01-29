@@ -1,7 +1,16 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 function Nav() {
+  const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    alert("로그아웃 되었습니다.");
+    navigate("/");
+  };
+
   return (
     <NavContainer>
       <NavWrap>
@@ -9,6 +18,7 @@ function Nav() {
         <SearchBar>
           <input type="text" placeholder="Search" />
         </SearchBar>
+        <Logout onClick={logout}>로그아웃</Logout>
       </NavWrap>
     </NavContainer>
   );
@@ -25,7 +35,7 @@ const NavContainer = styled.div`
 
 const NavWrap = styled.div`
   display: grid;
-  grid-template-columns: 1fr 5fr;
+  grid-template-columns: 1fr 3fr 1fr;
   align-items: center;
 `;
 
@@ -47,4 +57,11 @@ const SearchBar = styled.div`
       padding-left: 3%;
     }
   }
+`;
+
+const Logout = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 25px;
+  cursor: pointer;
 `;

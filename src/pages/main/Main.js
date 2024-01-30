@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import * as S from "./MainStyle.js";
 import BoardList from "../../components/board/BoardList";
 import axios from "axios";
@@ -8,17 +8,19 @@ function Main() {
   const [form, setForm] = useState({
     title: "",
     content: "",
-    email: "",
   });
-
   const [userEmail, setUserEmail] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [selectedList, setSelectedList] = useState(null);
   const [data, setData] = useState(null);
+  //페이지네이션
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5); // Or whatever your default size is
+  const [totalPages, setTotalPages] = useState(0);
 
   const { id } = useParams();
   const { title, content } = form;
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({
@@ -45,33 +47,40 @@ function Main() {
       content: "",
     });
     setCreatedAt("");
-    setSelectedList(null); //get요청으로 바꾸기
+    setSelectedList(null);
+    navigate("/boards");
   };
 
   const isDisabled = !title || !content;
-  console.log("email", userEmail);
+
   //게시글을 수정하거나 새로운 게시글을 생성
   const commitCreate = async () => {
     try {
-      let response;
-      const postData = { title, content, email: userEmail }; // userEmail is used for a new post
+      const postData = { title, content, email: userEmail };
 
+      // 기존 게시글 수정
       if (selectedList) {
-        response = await axios.patch(`/api/boards/${selectedList}`, postData);
+        // Edit existing post
+        const response = await axios.patch(
+          `/api/boards/${selectedList}`,
+          postData,
+        );
         const updatedBoard = response.data;
-        setCreatedAt(updatedBoard.createdAt); // Update the time of creation/modification
+        setData((prevData) =>
+          prevData.map((post) =>
+            post.id === selectedList ? { ...post, ...updatedBoard } : post,
+          ),
+        );
       } else {
         // 새 게시글 생성
-        response = await axios.post("/api/boards", { data: postData });
-        const createdBoard = response.data;
-        setCreatedAt(createdBoard.createdAt);
+        const response = await axios.post("/api/boards", postData);
+        const newBoard = response.data;
+        setData((prevData) => [...prevData, newBoard]);
       }
-      await fetchBoards(); // 게시글 목록 갱신 : 전체 게시글 목록을 다시 불러오는 함수 호출
-      // form 초기화
-      setForm({ title: "", content: "" });
-
-      setCreatedAt("");
+      setForm({ title: "", content: "" }); // 폼 초기화
       setSelectedList(null);
+      setCurrentPage(0);
+      fetchBoards(0, pageSize);
     } catch (error) {
       console.error("Error creating/updating board:", error);
     }
@@ -79,21 +88,29 @@ function Main() {
 
   // 게시글 삭제
   const deleteBoard = async (boardId) => {
-    try {
-      await axios.delete(`/api/boards/${id}`);
-      setData((prevData) => prevData.filter((board) => board.id !== boardId));
-    } catch (error) {
-      console.error("Failed to delete board:", error);
+    const boardToDelete = data.find((board) => board.id === boardId);
+    if (boardToDelete && boardToDelete.email === userEmail) {
+      try {
+        await axios.delete(`/api/boards/${id}`);
+        setData((prevData) => prevData.filter((board) => board.id !== boardId));
+      } catch (error) {
+        console.error("Failed to delete board:", error);
+      }
+    } else {
+      console.error("You are not authorized to delete this board.");
     }
   };
 
-  const fetchBoards = async () => {
+  const fetchBoards = async (page = 0, size = 5) => {
     try {
-      const response = await axios.get("/api/boards");
-      setData(response.data.data);
+      const response = await axios.get(`/api/boards?page=${page}&size=${size}`);
+      setData(response.data.data.boardList); // Extracting boardList
+      const totalBoards = response.data.data.totalCnt; // Extracting totalCnt
+      const totalPages = Math.ceil(totalBoards / pageSize); // Calculating total pages
+      setTotalPages(totalPages);
     } catch (error) {
       console.error("Error fetching boards:", error);
-      setData([]); // In the event of an error, reset the data to an empty array.
+      // setData([]); // In the event of an error, reset the data to an empty array.
     }
   };
 
@@ -124,19 +141,53 @@ function Main() {
     return date.toLocaleString("ko-KR", options);
   };
 
+  //페이지네이션
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+      fetchBoards(currentPage + 1, pageSize);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+      fetchBoards(currentPage - 1, pageSize);
+    }
+  };
+
   useEffect(() => {
     if (id) {
-      fetchBoardDetails(); // 특정 게시글 상세 정보를 불러오는 함수
-    } else {
-      fetchBoards(); // 전체 게시글 목록을 불러오는 함수
+      fetchBoardDetails();
+      // 특정 게시글 상세 정보를 불러오는 함수
     }
-  }, [id]); // The useEffect hook will re-run whenever 'id' changes.
+  }, [id]);
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail") || "";
     setUserEmail(email);
+    fetchBoards();
+    //새로고침해도 /api/boards/id 에 해당하는 데이터가 보이도록 함
+    const select = async () => {
+      try {
+        const response = await axios.get(`/api/boards/${id}`);
+        if (response.data && response.data.data) {
+          setForm({
+            title: response.data.data.title || "",
+            content: response.data.data.content || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching board details:", error);
+      }
+    };
+
+    if (id) {
+      select();
+    }
   }, []);
 
+  useEffect(() => {}, [currentPage]);
   return (
     <S.Main>
       {Array.isArray(data) && (
@@ -145,6 +196,10 @@ function Main() {
           data={data}
           onEdit={handleEdit}
           onDelete={deleteBoard}
+          currentPage={currentPage}
+          handlePrevPage={handlePrevPage}
+          totalPages={totalPages}
+          handleNextPage={handleNextPage}
         />
       )}
       <S.BoardContainer>

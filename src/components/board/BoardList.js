@@ -2,17 +2,24 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
-function BoardList({ data, onAdd, onEdit }) {
+function BoardList({
+  data,
+  onAdd,
+  onEdit,
+  currentPage,
+  handlePrevPage,
+  totalPages,
+  handleNextPage,
+}) {
   console.log("BoardList", data);
 
   return (
     <ListContainer>
       <TitleWrap>
         <ListTitle>Board List</ListTitle>
-        {/*<AddBoard>+</AddBoard>*/}
         <AddBoard onClick={onAdd}>+</AddBoard>
       </TitleWrap>
-      {data.map((board) => (
+      {data.map((board, index) => (
         <Link
           to={`/boards/${board.id}`}
           key={board.id}
@@ -21,13 +28,19 @@ function BoardList({ data, onAdd, onEdit }) {
         >
           <NoteTitle>
             <Title>
-              {board.id} | {board.title}
+              {index + 1} | {board.title}
             </Title>
-            <Writer>작성자: {board.email.split("@")[0]}</Writer>
+            <Writer>작성자: {board.email?.split("@")[0] || "Unknown"}</Writer>
           </NoteTitle>
           {/*<DeleteBoard onClick={() => onDelete(board.id)}>Delete</DeleteBoard>*/}
         </Link>
       ))}
+      <PaginationContainer>
+        {currentPage > 0 && <button onClick={handlePrevPage}>Previous</button>}
+        {currentPage < totalPages - 1 && (
+          <button onClick={handleNextPage}>Next</button>
+        )}
+      </PaginationContainer>
     </ListContainer>
   );
 }
@@ -78,3 +91,15 @@ const Writer = styled.div`
 `;
 
 const DeleteBoard = styled.div``;
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px; // Adjust the styling as needed
+
+  button {
+    margin: 0 10px;
+    padding: 5px 15px;
+    // Add more button styling as needed
+  }
+`;

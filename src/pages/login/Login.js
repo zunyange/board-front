@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styled from "styled-components";
 
-function Login() {
+function Login({ setUserEmail }) {
   const [loginInfo, setLoginInfo] = useState({
     email: "",
     password: "",
@@ -13,7 +13,9 @@ function Login() {
 
   const isValidEmail =
     email.length >= 5 && email.includes("@") && email.includes(".");
-  const isValidPW = password.length >= 8;
+  const isValidPW = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).test(
+    password,
+  );
   const isValidLogin = isValidEmail && isValidPW;
 
   const handleInput = (e) => {
@@ -30,18 +32,22 @@ function Login() {
   const login = async () => {
     if (isValidLogin) {
       try {
-        const response = await axios.post("`${APIS.login}`", {
-          username: email,
-          password: password,
-        });
+        const response = await axios.post(
+          "http://192.168.0.76:8080/security/login-proc",
+          {
+            username: email,
+            password: password,
+          },
+        );
         // Store the token in local storage or any state management lib of your choice.
-        localStorage.setItem("jwtToken", response.data.token);
-
+        // localStorage.setItem("jwtToken", response.data.token);
+        localStorage.setItem("userEmail", email);
         // Optional: Set the auth token on axios as a default header if you are going to need it for future requests.
         axios.defaults.headers.common["Authorization"] =
           "Bearer " + response.data.token;
 
         alert("로그인 성공!");
+        setUserEmail(email);
         navigate("/boards");
       } catch (error) {
         console.error("Login error", error);

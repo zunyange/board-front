@@ -2,11 +2,12 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-function Nav() {
+function Nav({ email, onLogout }) {
   const navigate = useNavigate();
 
   const logout = () => {
     localStorage.removeItem("token");
+    onLogout();
     alert("로그아웃 되었습니다.");
     navigate("/");
   };
@@ -18,7 +19,10 @@ function Nav() {
         <SearchBar>
           <input type="text" placeholder="Search" />
         </SearchBar>
-        <Logout onClick={logout}>로그아웃</Logout>
+        <Setting>
+          {email && <UserName>{email}</UserName>}
+          <Logout onClick={logout}>로그아웃</Logout>
+        </Setting>
       </NavWrap>
     </NavContainer>
   );
@@ -59,9 +63,15 @@ const SearchBar = styled.div`
   }
 `;
 
-const Logout = styled.div`
+const Setting = styled.div`
   display: flex;
   justify-content: flex-end;
   padding-right: 25px;
+`;
+const UserName = styled.div`
+  padding-right: 25px;
+`;
+
+const Logout = styled.div`
   cursor: pointer;
 `;

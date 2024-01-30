@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 function Signup() {
   const [userInfo, setUserInfo] = useState({
@@ -32,18 +33,24 @@ function Signup() {
 
   const signup = () => {
     if (isValidSignup) {
-      // fetch("서버 API 주소", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // })
-      //   .then((response) => response.json())
-      //   .then((data) => {
-      alert("회원가입 완료!");
-      navigate("/");
+      axios
+        .post(
+          "http://192.168.0.76:8080/security/join-proc",
+          { username: email, password: password },
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        )
+        .then((response) => {
+          alert("회원가입 완료!");
+          navigate("/");
+        })
+        .catch((error) => {
+          // Handle error here if the request fails
+          console.error("Error during signup:", error);
+        });
     } else {
-      alert("다시 입력해주세요.");
-      // });
+      alert("양식에 맞게 다시 입력해주세요.");
     }
   };
   const goToLogin = () => {

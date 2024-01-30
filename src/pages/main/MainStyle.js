@@ -47,3 +47,8 @@ export const UpdatedTime = styled.div`
   margin-top: 10px;
   font-size: ${(props) => props.theme.s};
 `;
+
+export const DeleteBoard = styled.div`
+  cursor: pointer;
+  padding-top: 30px;
+`;

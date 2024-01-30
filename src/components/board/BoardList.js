@@ -9,6 +9,7 @@ function BoardList({ data, onAdd, onEdit }) {
     <ListContainer>
       <TitleWrap>
         <ListTitle>Board List</ListTitle>
+        {/*<AddBoard>+</AddBoard>*/}
         <AddBoard onClick={onAdd}>+</AddBoard>
       </TitleWrap>
       {data.map((board) => (
@@ -22,9 +23,9 @@ function BoardList({ data, onAdd, onEdit }) {
             <Title>
               {board.id} | {board.title}
             </Title>
-            <Writer>작성자 : {board.email.split("@")[0]}</Writer>
-            {/*<Writer>작성자 : {board.email}</Writer>*/}
+            <Writer>작성자: {board.email.split("@")[0]}</Writer>
           </NoteTitle>
+          {/*<DeleteBoard onClick={() => onDelete(board.id)}>Delete</DeleteBoard>*/}
         </Link>
       ))}
     </ListContainer>
@@ -75,3 +76,5 @@ const Title = styled.div`
 const Writer = styled.div`
   font-size: ${(props) => props.theme.s};
 `;
+
+const DeleteBoard = styled.div``;

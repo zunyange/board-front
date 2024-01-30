@@ -10,7 +10,8 @@ function Main() {
     content: "",
     email: "",
   });
-  const [email, setEmail] = useState("");
+
+  const [userEmail, setUserEmail] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [selectedList, setSelectedList] = useState(null);
   const [data, setData] = useState(null);
@@ -32,7 +33,7 @@ function Main() {
       title: board.title,
       content: board.content,
     });
-    setEmail(board.email);
+
     setSelectedList(board.id);
     setCreatedAt(board.createdAt);
     console.log("click", board);
@@ -40,94 +41,56 @@ function Main() {
 
   const AddBoard = () => {
     setForm({
-      ...form,
       title: "",
       content: "",
     });
-    setEmail("");
     setCreatedAt("");
-  };
-
-  //게시글을 수정하거나 새로운 게시글을 생성
-  const commitCreate = async () => {
-    const isEdit = selectedList !== null;
-
-    if (isEdit) {
-      //게시글 중 하나를 선택했을 때
-      const updateData = { title, content, email };
-      console.log("22", id);
-      //fetch 문
-      // try {
-      //   const response = await fetch(`/api/boards/${selectedList}`, {
-      //     method: "PATCH",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify(updateData),
-      //   });
-      //
-      //   if (!response.ok) {
-      //     throw new Error(`HTTP error! status: ${response.status}`);
-      //   }
-
-      try {
-        const response = await axios.patch(
-          `/api/boards/${selectedList}`,
-          updateData,
-        );
-        const updatedBoard = response.data;
-        setCreatedAt(updatedBoard.createdAt); // 수정된 시간으로 상태 업데이트
-        // 게시글 목록을 갱신
-        await fetchBoards(); // 전체 게시글 목록을 다시 불러오는 함수 호출
-        //기존의 목록을 직접 업데이트하는 방법
-        // setData((prevData) =>
-        //   prevData.map((post) =>
-        //     post.id === selectedList ? { ...post, ...updatedBoard } : post,
-        //   ),
-        // );
-      } catch (error) {
-        console.error("Failed to update board:", error);
-      }
-    } else {
-      //선택한 게시글이 없을 때
-      const newPost = {
-        title,
-        content,
-        email,
-        createdAt,
-      };
-      try {
-        const response = await axios.post("/api/boards", newPost);
-        const createdBoard = response.data; // Assuming this contains the created board data
-
-        setCreatedAt(createdBoard.createdAt); // 생성된 시간으로 상태 업데이트
-        await fetchBoards();
-      } catch (error) {
-        console.error("Error creating new board:", error);
-      }
-    }
-
-    setForm({
-      title: "",
-      content: "",
-    });
-    setEmail("");
-    setCreatedAt("");
-    setSelectedList(null);
+    setSelectedList(null); //get요청으로 바꾸기
   };
 
   const isDisabled = !title || !content;
+  console.log("email", userEmail);
+  //게시글을 수정하거나 새로운 게시글을 생성
+  const commitCreate = async () => {
+    try {
+      let response;
+      const postData = { title, content, email: userEmail }; // userEmail is used for a new post
+
+      if (selectedList) {
+        response = await axios.patch(`/api/boards/${selectedList}`, postData);
+        const updatedBoard = response.data;
+        setCreatedAt(updatedBoard.createdAt); // Update the time of creation/modification
+      } else {
+        // 새 게시글 생성
+        response = await axios.post("/api/boards", { data: postData });
+        const createdBoard = response.data;
+        setCreatedAt(createdBoard.createdAt);
+      }
+      await fetchBoards(); // 게시글 목록 갱신 : 전체 게시글 목록을 다시 불러오는 함수 호출
+      // form 초기화
+      setForm({ title: "", content: "" });
+
+      setCreatedAt("");
+      setSelectedList(null);
+    } catch (error) {
+      console.error("Error creating/updating board:", error);
+    }
+  };
+
+  // 게시글 삭제
+  const deleteBoard = async (boardId) => {
+    try {
+      await axios.delete(`/api/boards/${id}`);
+      setData((prevData) => prevData.filter((board) => board.id !== boardId));
+    } catch (error) {
+      console.error("Failed to delete board:", error);
+    }
+  };
 
   const fetchBoards = async () => {
-    // try {
-    //   const response = await axios.get("http://192.168.0.76:8080/api/boards");
-    //   setData(response.data);
-    // }
     try {
-      // const response = await fetch("/api/boards");
-      const response = await fetch("/data/board.json");
-      const result = await response.json();
-      setData(result.data);
+      const response = await axios.get("/api/boards");
+      setData(response.data.data);
     } catch (error) {
       console.error("Error fetching boards:", error);
       setData([]); // In the event of an error, reset the data to an empty array.
@@ -137,14 +100,10 @@ function Main() {
   const fetchBoardDetails = async () => {
     try {
       await axios.get(`/api/boards/${id}`);
-
-      // Assuming the response returns an object with 'title', 'content', etc.
-
       setForm({
         title: title,
         content: content,
       });
-      // setEmail(email);
       setCreatedAt(createdAt);
     } catch (error) {
       console.error(`Error fetching board details for id ${id}:`, error);
@@ -173,10 +132,20 @@ function Main() {
     }
   }, [id]); // The useEffect hook will re-run whenever 'id' changes.
 
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail") || "";
+    setUserEmail(email);
+  }, []);
+
   return (
     <S.Main>
       {Array.isArray(data) && (
-        <BoardList onAdd={AddBoard} data={data} onEdit={handleEdit} />
+        <BoardList
+          onAdd={AddBoard}
+          data={data}
+          onEdit={handleEdit}
+          onDelete={deleteBoard}
+        />
       )}
       <S.BoardContainer>
         <input
@@ -198,9 +167,16 @@ function Main() {
         <S.CreateBoard onClick={isDisabled ? null : commitCreate}>
           작성 완료!
         </S.CreateBoard>
+        <S.DeleteBoard onClick={deleteBoard}>🗑️삭제🗑️</S.DeleteBoard>
       </S.BoardContainer>
     </S.Main>
   );
 }
 
 export default Main;
+// 직접 업데이트하는 방법 commitCreate의 if selectedList
+// setData((prevData) =>
+//   prevData.map((post) =>
+//     post.id === selectedList ? { ...post, ...updatedBoard } : post,
+//   ),
+// );

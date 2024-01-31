@@ -18,7 +18,7 @@ function Signup() {
   const isValidPW = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).test(
     password,
   ); // 최소 8자, 최소 하나의 문자 그리고 하나의 숫자
-  const isValidSignup = userName.length > 1 && isValidEmail && isValidPW;
+  const isValidSignup = userName.length >= 1 && isValidEmail && isValidPW;
 
   const handleInput = (e) => {
     const { value, name } = e.target;

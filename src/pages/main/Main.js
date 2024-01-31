@@ -15,7 +15,7 @@ function Main() {
   const [data, setData] = useState(null);
   //페이지네이션
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5); // Or whatever your default size is
+  const [pageSize, setPageSize] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
 
   const { id } = useParams();
@@ -31,6 +31,19 @@ function Main() {
 
   //선택한 리스트의 데이터 불러오기
   const handleEdit = (board) => {
+    // if (board.email === userEmail) {
+    //   setForm({
+    //     title: board.title,
+    //     content: board.content,
+    //   });
+    //
+    //   setSelectedList(board.id);
+    //   setCreatedAt(board.createdAt);
+    //   console.log("click", board);
+    // } else {
+    //   alert("You are not authorized to edit this board.");
+    // }
+
     setForm({
       title: board.title,
       content: board.content,
@@ -38,7 +51,6 @@ function Main() {
 
     setSelectedList(board.id);
     setCreatedAt(board.createdAt);
-    console.log("click", board);
   };
 
   const AddBoard = () => {
@@ -87,22 +99,31 @@ function Main() {
   };
 
   // 게시글 삭제
-  const deleteBoard = async (boardId) => {
-    const boardToDelete = data.find((board) => board.id === boardId);
-    if (boardToDelete && boardToDelete.email === userEmail) {
-      try {
-        await axios.delete(`/api/boards/${id}`);
-        setData((prevData) => prevData.filter((board) => board.id !== boardId));
-      } catch (error) {
-        console.error("Failed to delete board:", error);
+  const deleteBoard = async () => {
+    if (selectedList) {
+      const boardToDelete = data.find((board) => board.id === selectedList);
+      if (boardToDelete && boardToDelete.email === userEmail) {
+        try {
+          await axios.delete(`/api/boards/${selectedList}`);
+          setData((prevData) =>
+            prevData.filter((board) => board.id !== selectedList),
+          );
+          setForm({ title: "", content: "" }); // Reset form
+          setSelectedList(null); // Reset selected board
+        } catch (error) {
+          console.error("Failed to delete board:", error);
+        }
+      } else {
+        console.error("You are not authorized to delete this board.");
       }
     } else {
-      console.error("You are not authorized to delete this board.");
+      console.error("No board selected for deletion.");
     }
   };
 
   const fetchBoards = async (page = 0, size = 5) => {
     try {
+      // const response = await axios.get("/api/boards");
       const response = await axios.get(`/api/boards?page=${page}&size=${size}`);
       setData(response.data.data.boardList); // Extracting boardList
       const totalBoards = response.data.data.totalCnt; // Extracting totalCnt
@@ -141,20 +162,20 @@ function Main() {
     return date.toLocaleString("ko-KR", options);
   };
 
-  //페이지네이션
-  const handleNextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
-      fetchBoards(currentPage + 1, pageSize);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-      fetchBoards(currentPage - 1, pageSize);
-    }
-  };
+  //페이지네이션 - 전체 페이지 갯수는 안보여주고 방향 버튼만 있음
+  // const handleNextPage = () => {
+  //   if (currentPage < totalPages - 1) {
+  //     setCurrentPage(currentPage + 1);
+  //     fetchBoards(currentPage + 1, pageSize);
+  //   }
+  // };
+  //
+  // const handlePrevPage = () => {
+  //   if (currentPage > 0) {
+  //     setCurrentPage(currentPage - 1);
+  //     fetchBoards(currentPage - 1, pageSize);
+  //   }
+  // };
 
   useEffect(() => {
     if (id) {
@@ -197,9 +218,10 @@ function Main() {
           onEdit={handleEdit}
           onDelete={deleteBoard}
           currentPage={currentPage}
-          handlePrevPage={handlePrevPage}
+          setCurrentPage={setCurrentPage}
+          pageSize={pageSize}
+          fetchBoards={fetchBoards}
           totalPages={totalPages}
-          handleNextPage={handleNextPage}
         />
       )}
       <S.BoardContainer>
@@ -219,17 +241,26 @@ function Main() {
         <S.UpdatedTime>
           업데이트 시간 : {formatCreatedAt(createdAt)}
         </S.UpdatedTime>
-        <S.CreateBoard onClick={isDisabled ? null : commitCreate}>
-          작성 완료!
-        </S.CreateBoard>
-        <S.DeleteBoard onClick={deleteBoard}>🗑️삭제🗑️</S.DeleteBoard>
+        {(!selectedList ||
+          (selectedList &&
+            data.find((board) => board.id === selectedList).email ===
+              userEmail)) && (
+          <>
+            <S.CreateBoard onClick={isDisabled ? null : commitCreate}>
+              작성 완료!
+            </S.CreateBoard>
+            {selectedList && (
+              <S.DeleteBoard onClick={deleteBoard}>🗑️삭제🗑️</S.DeleteBoard>
+            )}
+          </>
+        )}
       </S.BoardContainer>
     </S.Main>
   );
 }
 
 export default Main;
-// 직접 업데이트하는 방법 commitCreate의 if selectedList
+// 직접 업데이트하는 방법 commitCreate의 if (selectedList)
 // setData((prevData) =>
 //   prevData.map((post) =>
 //     post.id === selectedList ? { ...post, ...updatedBoard } : post,

@@ -7,11 +7,34 @@ function BoardList({
   onAdd,
   onEdit,
   currentPage,
-  handlePrevPage,
+  setCurrentPage,
+  pageSize,
+  fetchBoards,
   totalPages,
-  handleNextPage,
 }) {
   console.log("BoardList", data);
+  // 페이지 번호들을 생성하는 함수
+  const renderPageNumbers = () => {
+    const pages = [];
+    for (let i = 0; i < totalPages; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => {
+            setCurrentPage(i);
+            fetchBoards(i, pageSize);
+          }}
+          style={{
+            margin: "0 5px",
+            backgroundColor: currentPage === i ? "lightgray" : "white",
+          }}
+        >
+          {i + 1}
+        </button>,
+      );
+    }
+    return pages;
+  };
 
   return (
     <ListContainer>
@@ -35,11 +58,21 @@ function BoardList({
           {/*<DeleteBoard onClick={() => onDelete(board.id)}>Delete</DeleteBoard>*/}
         </Link>
       ))}
+      {/*전체 페이지 갯수는 안보여주고 방향 버튼만 있음*/}
+      {/*<PaginationContainer>*/}
+      {/*  {currentPage > 0 && <button onClick={handlePrevPage}>{"<"}</button>}*/}
+      {/*  {currentPage < totalPages - 1 && (*/}
+      {/*    <button onClick={handleNextPage}>{">"}</button>*/}
+      {/*  )}*/}
+      {/*</PaginationContainer>*/}
       <PaginationContainer>
-        {currentPage > 0 && <button onClick={handlePrevPage}>Previous</button>}
-        {currentPage < totalPages - 1 && (
-          <button onClick={handleNextPage}>Next</button>
-        )}
+        {/*방향 버튼까지 있을 때*/}
+        {/*{currentPage > 0 && <button onClick={handlePrevPage}>{"<"}</button>}*/}
+        {/*{renderPageNumbers()}*/}
+        {/*{currentPage < totalPages - 1 && (*/}
+        {/*  <button onClick={handleNextPage}>{">"}</button>*/}
+        {/*)}*/}
+        {renderPageNumbers()}
       </PaginationContainer>
     </ListContainer>
   );

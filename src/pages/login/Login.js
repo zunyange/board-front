@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import styled from "styled-components";
+import axios from "axios";
 
 function Login({ setUserEmail }) {
   const [loginInfo, setLoginInfo] = useState({
@@ -11,6 +11,7 @@ function Login({ setUserEmail }) {
   const { email, password } = loginInfo;
   const navigate = useNavigate();
 
+  // 로그인 버튼 활성화
   const isValidEmail =
     email.length >= 5 && email.includes("@") && email.includes(".");
   const isValidPW = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).test(
@@ -24,40 +25,41 @@ function Login({ setUserEmail }) {
   };
 
   const enterKeyUp = (event) => {
-    if (event.keyCode === 13 && isValidLogin) {
+    if (event.keyCode === 13) {
       login();
     }
   };
 
   const login = async () => {
-    if (isValidLogin) {
-      try {
-        const response = await axios.post(
-          "http://192.168.0.76:8080/security/login-proc",
-          {
-            username: email,
-            password: password,
-          },
-        );
-        // Store the token in local storage or any state management lib of your choice.
-        // localStorage.setItem("jwtToken", response.data.token);
+    try {
+      const response = await axios.post(
+        "http://192.168.0.76:8080/security/login-proc",
+        {
+          username: email,
+          password: password,
+        },
+      );
+
+      if (response.data && response.data.code === 200) {
+        // JWT 토큰을 로컬 스토리지에 저장
+        localStorage.setItem("jwtToken", response.data.token);
         localStorage.setItem("userEmail", email);
-        // Optional: Set the auth token on axios as a default header if you are going to need it for future requests.
+        // axios의 기본 헤더에 인증 토큰 설정
         axios.defaults.headers.common["Authorization"] =
           "Bearer " + response.data.token;
 
-        alert("로그인 성공!");
         setUserEmail(email);
         navigate("/boards");
-      } catch (error) {
-        console.error("Login error", error);
-        alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
+        alert("로그인 성공!");
+      } else {
+        console.error("Login failed: ", response.data);
+        alert("로그인 실패! " + response.data.errorMessage);
       }
-    } else {
-      alert("로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인해주세요.");
+    } catch (error) {
+      console.error("Error during login request: ", error);
+      alert("An error occurred during login. Please try again.");
     }
   };
-
   const goToSignup = () => {
     navigate("/signup");
   };
@@ -80,7 +82,7 @@ function Login({ setUserEmail }) {
             onChange={handleInput}
           />
           {isValidLogin ? (
-            <LoginBtn type="submit" onClick={login}>
+            <LoginBtn type="submit" onClick={() => login()}>
               로그인
             </LoginBtn>
           ) : (

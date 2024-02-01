@@ -52,3 +52,8 @@ export const DeleteBoard = styled.div`
   cursor: pointer;
   padding-top: 30px;
 `;
+
+export const GoToChat = styled.div`
+  padding-top: 20px;
+  cursor: pointer;
+`;

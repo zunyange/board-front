@@ -1,9 +1,19 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import * as S from "../pages/main/MainStyle";
 
-function Nav({ email, onLogout }) {
+function Nav({ email, onLogout, currentPath }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleButtonClick = () => {
+    if (location.pathname.startsWith("/chat/rooms")) {
+      navigate("/boards");
+    } else {
+      navigate("/chat/rooms");
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -16,9 +26,14 @@ function Nav({ email, onLogout }) {
     <NavContainer>
       <NavWrap>
         <SidebarBtn>Menu</SidebarBtn>
-        <SearchBar>
-          <input type="text" placeholder="Search" />
-        </SearchBar>
+        {/*<SearchBar>*/}
+        {/*  <input type="text" placeholder="Search" />*/}
+        {/*</SearchBar>*/}
+        <GoToChat onClick={handleButtonClick}>
+          {location.pathname.startsWith("/chat/rooms")
+            ? "📋게시판 가기📋"
+            : "🚀채팅방 가기🚀"}
+        </GoToChat>
         <Setting>
           {email && <UserName>{email}</UserName>}
           <Logout onClick={logout}>로그아웃</Logout>
@@ -39,7 +54,7 @@ const NavContainer = styled.div`
 
 const NavWrap = styled.div`
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
   align-items: center;
 `;
 
@@ -48,19 +63,24 @@ const SidebarBtn = styled.div`
   cursor: pointer;
 `;
 
-const SearchBar = styled.div`
-  width: 400px;
+// const SearchBar = styled.div`
+//   width: 400px;
+//
+//   input {
+//     width: 100%;
+//     height: 25px;
+//     padding: 7px;
+//     border: 1px solid rgba(218, 217, 217, 0.7);
+//
+//     &::placeholder {
+//       padding-left: 3%;
+//     }
+//   }
+// `;
 
-  input {
-    width: 100%;
-    height: 25px;
-    padding: 7px;
-    border: 1px solid rgba(218, 217, 217, 0.7);
-
-    &::placeholder {
-      padding-left: 3%;
-    }
-  }
+const GoToChat = styled.div`
+  cursor: pointer;
+  font-weight: bold;
 `;
 
 const Setting = styled.div`

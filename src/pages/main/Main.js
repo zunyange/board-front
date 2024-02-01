@@ -21,6 +21,7 @@ function Main() {
   const { id } = useParams();
   const { title, content } = form;
   const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import ChatRoomList from "./ChatRoomList";
+import ChatRoomList from "@/components/chat/ChatRoomList";
 
 function Chat() {
   return (

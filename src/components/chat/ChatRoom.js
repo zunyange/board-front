@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import styled from "styled-components";
-import ChatBox from "./ChatBox";
-import InputBox from "./InputBox";
+import ChatBox from "@/components/chat/ChatBox";
+import InputBox from "@/components/chat/InputBox";
 
 function ChatRoom(userEmail) {
   const [socket, setSocket] = useState(null);

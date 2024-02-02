@@ -1,31 +1,57 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { WebsocketConnect } from "../../websocket/WebsocketConnect";
 
-const type = {
-  ENTER: "ENTER",
-  TALK: "TALK",
-  OUT: "OUT",
-};
-
-function ChatBox({ messages }) {
-  const [currentMessage, setCurrentMessage] = useState("");
+function ChatBox({
+  setSocket,
+  messages,
+  setMessages,
+  fetchEnterRoom,
+  enterChatRoom,
+}) {
   const { id } = useParams();
 
-  // useEffect(() => {
-  //   const connect = WebsocketConnect();
-  //
-  //   connect.connect({}, (frame) => {
-  //     connect.subscribe(`/sub/chat/room/${id}`, (message) => {
-  //       const messageData = JSON.parse(message.body);
-  //       setMessages((prevMessages) => [...prevMessages, messageData]);
-  //     });
-  //   });
-  //
-  //   return () => connect.disconnect(); // Clean up on component unmount
-  // }, []);
+  useEffect(() => {
+    const connect = WebsocketConnect();
+    setSocket(connect);
+    connect?.connect({}, (frame) => {
+      connect?.subscribe(`/sub/chat/room/${id}`, (message) => {
+        const receivedMessage = JSON.parse(message.body);
+        if (
+          receivedMessage.messageType === "ENTER" ||
+          receivedMessage.messageType === "TALK" ||
+          receivedMessage.messageType === "OUT"
+        ) {
+          updateMessages([receivedMessage]);
+        }
+      });
+      fetchEnterRoom();
+      enterChatRoom(connect);
+    });
+    //채팅 내역 유지
+    const updateMessages = (newMessages) => {
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, ...newMessages];
+        //로컬에 저장
+        localStorage.setItem(
+          `chatRoomHistory_${id}`,
+          JSON.stringify(updatedMessages),
+        );
+        return updatedMessages;
+      });
+    };
+    const storedMessages = localStorage.getItem(`chatRoomHistory_${id}`);
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+    }
+    return () => {
+      if (connect) {
+        connect.disconnect();
+      }
+    };
+  }, [id]);
 
   return (
     <ChatBoxContainer>
@@ -34,10 +60,6 @@ function ChatBox({ messages }) {
           <p>{msg.message}</p>
         </div>
       ))}
-
-      {/*{messages.map((msg, index) => (*/}
-      {/*  <div key={index}>{msg.message}</div> // 메시지를 화면에 렌더링*/}
-      {/*))}*/}
     </ChatBoxContainer>
   );
 }

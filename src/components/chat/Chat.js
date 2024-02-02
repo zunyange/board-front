@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import ChatRoomList from "./ChatRoomList";
 
 function Chat() {
-  const [onChat, setOnChat] = useState(false);
-
   return (
     <ChatContainer>
-      {/*{onChat && <ChatRoomList />}*/}
       <ChatRoomList />
     </ChatContainer>
   );
@@ -18,7 +15,6 @@ export default Chat;
 const ChatContainer = styled.div`
   padding: 3%;
   display: flex;
-  //flex-direction: column;
   justify-content: center;
   align-items: center;
 `;

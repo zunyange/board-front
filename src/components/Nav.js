@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import * as S from "../pages/main/MainStyle";
 
 function Nav({ email, onLogout, currentPath }) {
   const navigate = useNavigate();

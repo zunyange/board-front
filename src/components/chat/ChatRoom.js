@@ -4,59 +4,98 @@ import axios from "axios";
 import styled from "styled-components";
 import { WebsocketConnect } from "../../websocket/WebsocketConnect";
 import ChatBox from "./ChatBox";
+import InputBox from "./InputBox";
 
-function ChatRoom() {
+function ChatRoom(userEmail) {
   const [socket, setSocket] = useState(null);
-  const [userEmail, setUserEmail] = useState("");
   const [roomInfo, setRoomInfo] = useState(null);
-  const [messageInput, setMessageInput] = useState("");
+  const [messageValue, setMessageValue] = useState("");
+  const [messages, setMessages] = useState([]);
 
   const { id } = useParams();
   const navigate = useNavigate();
   const handleMessageChange = (e) => {
-    setMessageInput(e.target.value);
+    setMessageValue(e.target.value);
   };
   const goToList = () => {
     navigate("/chat/rooms");
   };
-  const pubMessage = (socket) => {
-    const msg = {
-      // roomId: roomIdInfo.value?.roomId,
+  const enterChatRoom = (socket) => {
+    // if (!messageValue.trim()) return;
+
+    // send버튼 에러:Check if the socket is connected before sending a message
+    // if (!socket || typeof socket.send !== "function") {
+    //   console.error("WebSocket connection not established");
+    //   return;
+    // }
+
+    const enterMsg = {
       messageType: "ENTER",
       roomId: id,
       sender: localStorage.getItem("userEmail"),
-      message: "abc",
+
+      // message: `${user}: ${messageValue}`,
     };
-    // if (socket.isConnected) {
-    socket.send(`/pub/chat/message`, {}, JSON.stringify(msg));
-    //
+    console.log("EnterMsg★★★★★★★: ", enterMsg);
+    // Add the message to the local state
+    setMessages((prevMessages) => [...prevMessages, enterMsg]);
+    // Send the message to the server
+    socket?.send(`/pub/chat/message`, {}, JSON.stringify(enterMsg));
+    setMessageValue("");
   };
-  useEffect(() => {
-    axios
-      .get(`/chat/rooms/${id}`)
-      .then((res) => {
-        console.log("입장한 채팅방", res.data.data);
-        setRoomInfo(res.data.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+
+  const sendMessage = () => {
+    const userEmail = localStorage.getItem("userEmail");
+    // const user = typeof userEmail === "string" ? userEmail.split("@")[0] : "";
+    const user = userEmail.split("@")[0];
+    const msg = {
+      messageType: "TALK",
+      roomId: id,
+      sender: localStorage.getItem("userEmail"),
+      message: `${user}: ${messageValue}`,
+    };
+
+    if (socket && messageValue.trim()) {
+      socket?.send(`/pub/chat/message`, {}, JSON.stringify(msg));
+      setMessageValue(""); // Clear the input after sending
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
+
+  const fetchEnterRoom = async () => {
+    try {
+      const response = await axios.get(`/chat/rooms/${id}`);
+      console.log("입장한 채팅방: ", response);
+      setRoomInfo(response.data.data);
+    } catch (error) {
+      console.error("Error fetching chat list:", error);
+    }
+  };
 
   useEffect(() => {
     const connect = WebsocketConnect();
     setSocket(connect);
-    console.log(`/sub/message/${id}`);
     connect?.connect({}, (frame) => {
       connect?.subscribe(`/sub/chat/room/${id}`, (message) => {
-        console.log("msg: " + message);
+        // console.log("msg: " + message);
+        const receivedMessage = JSON.parse(message.body);
+        // messageType이 'ENTER'인 경우에만 메시지를 배열에 추가
+        if (receivedMessage.messageType === "ENTER") {
+          setMessages((prevMessages) => [...prevMessages, receivedMessage]);
+        }
       });
-      pubMessage(connect);
+      fetchEnterRoom();
+      enterChatRoom(connect);
     });
     // return () => {
     //   connect.disconnect();
     // };
-  }, []);
+  }, [id]);
 
   return (
     <div>
@@ -69,13 +108,13 @@ function ChatRoom() {
       {/*    </div>*/}
       {/*  );*/}
       {/*})}*/}
-      <ChatBox />
-      <Form id="chat-form">
-        <input value={messageInput} onChange={handleMessageChange} />
-        <button type="button" onClick={() => pubMessage()}>
-          Send
-        </button>
-      </Form>
+      <ChatBox messages={messages} />
+      <InputBox
+        messageValue={messageValue}
+        handleMessageChange={handleMessageChange}
+        handleKeyPress={handleKeyPress}
+        sendMessage={sendMessage}
+      />
     </div>
   );
 }
@@ -97,29 +136,4 @@ const RoomTitle = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-`;
-
-const Form = styled.div`
-  position: fixed;
-  width: 100%;
-  height: 100px;
-  display: flex;
-  bottom: 0;
-  background: ghostwhite;
-  input {
-    width: 85%;
-    margin: 0.5%;
-    border-radius: 5px;
-    border: none;
-    padding: 10px;
-  }
-  button {
-    width: 12%;
-    margin: 0.5%;
-    padding: 10px;
-    border-radius: 5px;
-    border: none;
-    background: ${(props) => props.theme.lightColor};
-    cursor: pointer;
-  }
 `;

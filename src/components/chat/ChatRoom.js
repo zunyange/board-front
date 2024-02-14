@@ -71,16 +71,15 @@ function ChatRoom(userEmail) {
     }
   };
 
-  // const fetchEnterRoom = async () => {
-  //   try {
-  //     const response = await axios.get(`/chat/rooms/${id}`);
-  //     console.log("입장한 채팅방: ", response);
-  //     setRoomInfo(response.data.data);
-  //   } catch (error) {
-  //     console.error("채팅방 입장 에러:", error);
-  //   }
-  // };
-
+  const fetchEnterRoom = async () => {
+    try {
+      const response = await axios.get(`/chat/rooms/${id}`);
+      console.log("입장한 채팅방: ", response);
+      setRoomInfo(response.data.data);
+    } catch (error) {
+      console.error("채팅방 입장 에러:", error);
+    }
+  };
 
   return (
     <div>

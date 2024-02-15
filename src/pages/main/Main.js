@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as S from "./MainStyle.js";
-import BoardList from "../../components/board/BoardList";
+import BoardList from "@/components/board/BoardList";
 import axios from "axios";
 
 function Main() {

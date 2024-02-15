@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Nav from "./components/Nav";
-import Login from "./pages/login/Login";
-import Signup from "./pages/signup/Signup";
-import Main from "./pages/main/Main";
-import Chat from "./components/chat/Chat";
-import ChatRoom from "./components/chat/ChatRoom";
+import Nav from "@/components/Nav";
+import Login from "@/pages/login/Login";
+import Signup from "@/pages/signup/Signup";
+import Main from "@/pages/main/Main";
+import Chat from "@/components/chat/Chat";
+import ChatRoom from "@/components/chat/ChatRoom";
 
 const Router = () => {
   const [userEmail, setUserEmail] = useState(

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
-import { WebsocketConnect } from "../../websocket/WebsocketConnect";
+import { WebsocketConnect } from "@/utils/WebsocketConnect";
 
 function ChatBox({
   setSocket,
